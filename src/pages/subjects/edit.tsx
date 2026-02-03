@@ -1,4 +1,4 @@
-import {CreateView, CreateViewHeader} from "@/components/refine-ui/views/create-view.tsx";
+import {EditView, EditViewHeader} from "@/components/refine-ui/views/edit-view.tsx";
 import {useForm} from "@refinedev/react-hook-form";
 import {Input} from "@/components/ui/input.tsx";
 import {Label} from "@/components/ui/label.tsx";
@@ -8,14 +8,15 @@ import {Textarea} from "@/components/ui/textarea.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 import {Controller} from "react-hook-form";
 import {useSelect} from "@refinedev/core";
+import {DeleteButton} from "@/components/refine-ui/buttons/delete.tsx";
 
-const SubjectsCreate = () => {
+const SubjectsEdit = () => {
     const {
         register,
         handleSubmit,
         control,
         formState: { errors },
-        refineCore: { onFinish, formLoading },
+        refineCore: { onFinish, formLoading, queryResult },
     } = useForm({
         refineCoreProps: {
             resource: "subjects",
@@ -29,9 +30,20 @@ const SubjectsCreate = () => {
         optionValue: "id",
     });
 
+    const subjectData = queryResult?.data?.data;
+
     return (
-        <CreateView>
-            <CreateViewHeader title="Create Subject" />
+        <EditView>
+            <EditViewHeader 
+                title="Edit Subject" 
+                actionsSlot={
+                    <DeleteButton 
+                        resource="subjects" 
+                        recordItemId={subjectData?.id} 
+                        variant="destructive"
+                    />
+                }
+            />
             
             <Card className="mt-4">
                 <CardContent className="pt-6">
@@ -91,14 +103,14 @@ const SubjectsCreate = () => {
 
                         <div className="flex justify-end gap-2 mt-4">
                             <Button type="submit" disabled={formLoading}>
-                                {formLoading ? "Saving..." : "Create"}
+                                {formLoading ? "Saving..." : "Save Changes"}
                             </Button>
                         </div>
                     </form>
                 </CardContent>
             </Card>
-        </CreateView>
+        </EditView>
     );
 };
 
-export default SubjectsCreate;
+export default SubjectsEdit;
