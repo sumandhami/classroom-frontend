@@ -12,8 +12,11 @@ import {
   useActiveAuthProvider,
   useLogout,
   useRefineOptions,
+  useNavigation,
 } from "@refinedev/core";
-import { LogOutIcon } from "lucide-react";
+import { LogOutIcon, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export const Header = () => {
   const { isMobile } = useSidebar();
@@ -22,6 +25,25 @@ export const Header = () => {
 };
 
 function DesktopHeader() {
+  const [search, setSearch] = useState("");
+  const { list } = useNavigation();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (search.trim()) {
+      list("classes", {
+        filters: [
+          {
+            field: "q",
+            operator: "contains",
+            value: search,
+          },
+        ],
+      });
+      setSearch("");
+    }
+  };
+
   return (
     <header
       className={cn(
@@ -35,13 +57,26 @@ function DesktopHeader() {
         "border-b",
         "border-border",
         "bg-sidebar",
-        "pr-3",
-        "justify-end",
+        "px-6",
+        "justify-between",
         "z-40"
       )}
     >
-      <ThemeToggle />
-      <UserDropdown />
+      <form onSubmit={handleSearch} className="relative w-full max-w-md">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="Global search classes..."
+          className="w-full bg-background pl-9"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </form>
+
+      <div className="flex items-center gap-4">
+        <ThemeToggle />
+        <UserDropdown />
+      </div>
     </header>
   );
 }

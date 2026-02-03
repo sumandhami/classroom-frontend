@@ -38,14 +38,23 @@ const options: CreateDataProviderOptions = {
                 const value = String(filter.value);
 
                 if(resource === 'subjects') {
-                    if(field === 'department') params.department = value;
-                    if(field === 'name' || field === 'code') params.search = value;
+                    if(field === 'departmentId' || field === 'department') params.department = value;
+                    if(field === 'name' || field === 'code' || field === 'q') params.search = value;
                 }
 
                 if(resource === 'classes') {
-                    if(field === 'name') params.search = value;
-                    if(field === 'subject') params.subject = value;
-                    if(field === 'teacher') params.teacher = value;
+                    if(field === 'name' || field === 'q') params.search = value;
+                    if(field === 'subjectId' || field === 'subject') params.subject = value;
+                    if(field === 'teacherId' || field === 'teacher') params.teacher = value;
+                }
+
+                if(resource === 'users') {
+                    if(field === 'role') params.role = value;
+                    if(field === 'name' || field === 'email' || field === 'q') params.search = value;
+                }
+
+                if(resource === 'departments') {
+                    if(field === 'name' || field === 'code' || field === 'q') params.search = value;
                 }
             })
 
@@ -82,6 +91,25 @@ const options: CreateDataProviderOptions = {
             }
 
             return json.data ;
+        }
+    },
+
+    update: {
+        getEndpoint: ({ resource, id }) => `${resource}/${id}`,
+        buildBodyParams: async ({variables}) => variables,
+        mapResponse: async (response) => {
+            const json = await response.json();
+            if (!json.data) throw new Error('Resource not found');
+            return json.data;
+        }
+    },
+
+    deleteOne: {
+        getEndpoint: ({ resource, id }) => `${resource}/${id}`,
+        mapResponse: async (response) => {
+            const json = await response.json();
+            if (!response.ok) throw await buildHttpError(response);
+            return json.data;
         }
     },
 

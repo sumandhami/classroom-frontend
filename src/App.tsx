@@ -17,9 +17,17 @@ import {BookOpen, GraduationCap, Home} from "lucide-react";
 import {Layout} from "@/components/refine-ui/layout/layout.tsx";
 import SubjectsList from "@/pages/subjects/list.tsx";
 import SubjectsCreate from "@/pages/subjects/create.tsx";
+import SubjectsEdit from "@/pages/subjects/edit.tsx";
 import ClassesList from "@/pages/classes/list.tsx";
 import ClassesCreate from "@/pages/classes/create.tsx";
+import ClassesEdit from "@/pages/classes/edit.tsx";
 import ClassesShow from "@/pages/classes/show.tsx";
+import DepartmentsList from "@/pages/departments/list.tsx";
+import DepartmentsCreate from "@/pages/departments/create.tsx";
+import DepartmentsEdit from "@/pages/departments/edit.tsx";
+import UsersList from "@/pages/users/list.tsx";
+import UsersEdit from "@/pages/users/edit.tsx";
+import {Building2, Users as UsersIcon} from "lucide-react";
 
 function App() {
   return (
@@ -43,17 +51,32 @@ function App() {
                       meta: { label: 'Home', icon: <Home />}
                   },
                   {
+                      name: 'departments',
+                      list: '/departments',
+                      create: '/departments/create',
+                      edit: '/departments/edit/:id',
+                      meta: { label: 'Departments', icon: <Building2 />}
+                  },
+                  {
                       name: 'subjects',
                       list: '/subjects',
                       create: '/subjects/create',
+                      edit: '/subjects/edit/:id',
                       meta: { label: 'Subjects', icon: <BookOpen />}
                   },
                   {
                       name: 'classes',
                       list: '/classes',
                       create: '/classes/create',
+                      edit: '/classes/edit/:id',
                       show: '/classes/show/:id',
                       meta: { label: 'Classes', icon: <GraduationCap />}
+                  },
+                  {
+                      name: 'users',
+                      list: '/users',
+                      edit: '/users/edit/:id',
+                      meta: { label: 'Users', icon: <UsersIcon />}
                   },
               ]}
             >
@@ -65,14 +88,25 @@ function App() {
                   }>
                       <Route path="/" element={<Dashboard />} />
 
+                       <Route path="departments">
+                           <Route index element={<DepartmentsList />} />
+                           <Route path="create" element={<DepartmentsCreate/>} />
+                           <Route path="edit/:id" element={<DepartmentsEdit/>} />
+                       </Route>
                        <Route path="subjects">
                            <Route index element={<SubjectsList />} />
                            <Route path="create" element={<SubjectsCreate/>} />
+                           <Route path="edit/:id" element={<SubjectsEdit/>} />
                        </Route>
                       <Route path="classes">
                           <Route index element={<ClassesList />} />
                           <Route path="create" element={<ClassesCreate/>} />
-                          <Route path="show/:id" element={<ClassesShow/>} />,
+                          <Route path="edit/:id" element={<ClassesEdit/>} />
+                          <Route path="show/:id" element={<ClassesShow/>} />
+                      </Route>
+                      <Route path="users">
+                          <Route index element={<UsersList />} />
+                          <Route path="edit/:id" element={<UsersEdit/>} />
                       </Route>
                   </Route>
               </Routes>

@@ -5,66 +5,32 @@ import {Label} from "@/components/ui/label.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Card, CardContent} from "@/components/ui/card.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
-import {Controller} from "react-hook-form";
-import {useSelect} from "@refinedev/core";
 
-const SubjectsCreate = () => {
+const DepartmentsCreate = () => {
     const {
         register,
         handleSubmit,
-        control,
         formState: { errors },
         refineCore: { onFinish, formLoading },
     } = useForm({
         refineCoreProps: {
-            resource: "subjects",
+            resource: "departments",
             redirect: "list",
         },
     });
 
-    const { options: departmentOptions } = useSelect({
-        resource: "departments",
-        optionLabel: "name",
-        optionValue: "id",
-    });
-
     return (
         <CreateView>
-            <CreateViewHeader title="Create Subject" />
+            <CreateViewHeader title="Create Department" />
             
             <Card className="mt-4">
                 <CardContent className="pt-6">
                     <form onSubmit={handleSubmit(onFinish)} className="flex flex-col gap-4">
                         <div className="flex flex-col gap-2">
-                            <Label htmlFor="departmentId">Department</Label>
-                            <Controller
-                                control={control}
-                                name="departmentId"
-                                rules={{ required: "Department is required" }}
-                                render={({ field }) => (
-                                    <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select department" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {departmentOptions.map((option) => (
-                                                <SelectItem key={option.value} value={option.value.toString()}>
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.departmentId && <p className="text-sm text-destructive">{errors.departmentId.message as string}</p>}
-                        </div>
-
-                        <div className="flex flex-col gap-2">
                             <Label htmlFor="code">Code</Label>
                             <Input
                                 id="code"
-                                placeholder="e.g. CS101"
+                                placeholder="e.g. CS, MATH, PHY"
                                 {...register("code", { required: "Code is required" })}
                             />
                             {errors.code && <p className="text-sm text-destructive">{errors.code.message as string}</p>}
@@ -74,7 +40,7 @@ const SubjectsCreate = () => {
                             <Label htmlFor="name">Name</Label>
                             <Input
                                 id="name"
-                                placeholder="e.g. Introduction to Computer Science"
+                                placeholder="e.g. Computer Science"
                                 {...register("name", { required: "Name is required" })}
                             />
                             {errors.name && <p className="text-sm text-destructive">{errors.name.message as string}</p>}
@@ -84,7 +50,7 @@ const SubjectsCreate = () => {
                             <Label htmlFor="description">Description</Label>
                             <Textarea
                                 id="description"
-                                placeholder="Subject description..."
+                                placeholder="Department description..."
                                 {...register("description")}
                             />
                         </div>
@@ -101,4 +67,4 @@ const SubjectsCreate = () => {
     );
 };
 
-export default SubjectsCreate;
+export default DepartmentsCreate;
