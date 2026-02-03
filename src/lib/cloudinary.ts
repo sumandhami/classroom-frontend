@@ -11,6 +11,9 @@ import {Position} from "@cloudinary/url-gen/qualifiers/position";
 const cld = new Cloudinary({ cloud: { cloudName: CLOUDINARY_CLOUD_NAME }});
 
 export const bannerPhoto = (imageCldPubId: string, name: string) => {
+    if(!imageCldPubId || !name) {
+        throw new Error('imageCldPubId and name are required for bannerPhoto');
+    }
     return cld
         .image(imageCldPubId)
         .resize(fill())
