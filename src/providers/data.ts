@@ -77,7 +77,11 @@ const options: CreateDataProviderOptions = {
         mapResponse: async (response) => {
             const json: CreateResponse = await response.json();
 
-            return json.data ?? [];
+            if (!json.data) {
+                throw new Error('Resource not found');
+            }
+
+            return json.data ;
         }
     },
 
@@ -87,7 +91,11 @@ const options: CreateDataProviderOptions = {
         mapResponse: async (response) => {
             const json: GetOneResponse = await response.json();
 
-            return json.data ?? [];
+            if (!json.data) {
+                throw new Error('Resource not found');
+            }
+
+            return json.data;
         }
     }
 }
