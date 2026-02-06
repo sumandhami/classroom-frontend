@@ -34,6 +34,9 @@ export function Sidebar() {
   const { open } = useShadcnSidebar();
   const { menuItems, selectedKey } = useMenu();
 
+  const standardMenuItems = menuItems.filter(item => item.name !== 'account');
+  const accountMenuItem = menuItems.find(item => item.name === 'account');
+
   return (
     <ShadcnSidebar collapsible="icon" className={cn("border-none")}>
       <ShadcnSidebarRail />
@@ -55,13 +58,24 @@ export function Sidebar() {
           }
         )}
       >
-        {menuItems.map((item: TreeMenuItem) => (
-          <SidebarItem
-            key={item.key || item.name}
-            item={item}
-            selectedKey={selectedKey}
-          />
-        ))}
+        <div className="flex-1">
+          {standardMenuItems.map((item: TreeMenuItem) => (
+            <SidebarItem
+              key={item.key || item.name}
+              item={item}
+              selectedKey={selectedKey}
+            />
+          ))}
+        </div>
+        {accountMenuItem && (
+          <div className="mt-auto border-t pt-2">
+            <SidebarItem
+              key={accountMenuItem.key || accountMenuItem.name}
+              item={accountMenuItem}
+              selectedKey={selectedKey}
+            />
+          </div>
+        )}
       </ShadcnSidebarContent>
     </ShadcnSidebar>
   );

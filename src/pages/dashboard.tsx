@@ -1,5 +1,5 @@
 import React from 'react';
-import {useApiUrl, useCustom} from "@refinedev/core";
+import {useCustom} from "@refinedev/core";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {BookOpen, GraduationCap, Users, UserCheck, TrendingUp, PieChart as PieChartIcon} from "lucide-react";
 import {
@@ -19,30 +19,28 @@ import {
 } from 'recharts';
 
 const Dashboard = () => {
-    const apiUrl = useApiUrl();
-
     const { data: stats } = useCustom({
-        url: `${apiUrl}/dashboard/stats`,
+        url: `dashboard/stats`,
         method: "get",
     });
 
     const { data: trends } = useCustom({
-        url: `${apiUrl}/dashboard/charts/enrollment-trends`,
+        url: `dashboard/charts/enrollment-trends`,
         method: "get",
     });
 
     const { data: depts } = useCustom({
-        url: `${apiUrl}/dashboard/charts/classes-by-dept`,
+        url: `dashboard/charts/classes-by-dept`,
         method: "get",
     });
 
     const { data: users } = useCustom({
-        url: `${apiUrl}/dashboard/charts/user-distribution`,
+        url: `dashboard/charts/user-distribution`,
         method: "get",
     });
 
     const { data: capacity } = useCustom({
-        url: `${apiUrl}/dashboard/charts/capacity-status`,
+        url: `dashboard/charts/capacity-status`,
         method: "get",
     });
 

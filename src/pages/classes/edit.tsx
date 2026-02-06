@@ -20,7 +20,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Textarea} from "@/components/ui/textarea.tsx";
 import {Loader2} from "lucide-react";
 import UploadWidget from "@/components/upload-widget.tsx";
-import {Subject, User} from "@/types";
+import {Subject, User, UploadWidgetValue} from "@/types";
 import {DeleteButton} from "@/components/refine-ui/buttons/delete.tsx";
 
 const Edit = () => {
@@ -65,7 +65,7 @@ const Edit = () => {
     const subjects = subjectsQuery.data?.data ?? [];
     const teachers = teachersQuery.data?.data ?? [];
 
-    const setBannerImage = (file: any, field: any) => {
+    const setBannerImage = (file: UploadWidgetValue | null, field: any) => {
         if(file) {
             field.onChange(file.url);
             form.setValue('bannerCldPubId', file.publicId);
@@ -218,9 +218,12 @@ const Edit = () => {
                                         <FormItem>
                                             <FormLabel>Banner Image</FormLabel>
                                             <FormControl>
-                                                <UploadWidget 
-                                                    value={field.value ? {url: field.value, publicId: form.getValues('bannerCldPubId') || ''} : null}
-                                                    onChange={(val) => setBannerImage(val, field)} 
+                                                <UploadWidget
+                                                    value={field.value ? {
+                                                        url: field.value,
+                                                        publicId: form.getValues('bannerCldPubId') || ''
+                                                    } : null}
+                                                    onChange={(val) => setBannerImage(val, field)}
                                                 />
                                             </FormControl>
                                             <FormMessage />

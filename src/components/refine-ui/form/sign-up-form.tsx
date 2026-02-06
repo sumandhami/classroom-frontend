@@ -20,21 +20,36 @@ import {
   useLink,
   useNotification,
   useRefineOptions,
-  useRegister,
 } from "@refinedev/core";
+import { signUp, signIn } from "@/lib/auth";
+import { useNavigate } from "react-router";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import UploadWidget from "@/components/upload-widget";
+import { UploadWidgetValue, UserRole } from "@/types";
 
 export const SignUpForm = () => {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
+  const [image, setImage] = useState<UploadWidgetValue | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGitHubLoading, setIsGitHubLoading] = useState(false);
 
   const { open } = useNotification();
+  const navigate = useNavigate();
 
   const Link = useLink();
 
   const { title } = useRefineOptions();
-
-  const { mutate: register } = useRegister();
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,22 +65,83 @@ export const SignUpForm = () => {
       return;
     }
 
-    register({
+    setLoading(true);
+    const { error } = await signUp.email({
       email,
       password,
-    });
+      name,
+      role,
+      image: image?.url,
+      imageCldPubId: image?.publicId,
+    } as any);
+
+    if (error) {
+      open?.({
+        type: "error",
+        message: "Sign up failed",
+        description: error.message || "An error occurred during sign up.",
+      });
+    } else {
+      open?.({
+        type: "success",
+        message: "Sign up successful",
+        description: "A verification email has been sent to your email address. Please verify your email to log in.",
+      });
+      navigate("/login");
+    }
+    setLoading(false);
   };
 
-  const handleSignUpWithGoogle = () => {
-    register({
-      providerName: "google",
-    });
+  const handleSignUpWithGoogle = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const { error } = await signIn.social({
+        provider: "google",
+        callbackURL: "/",
+        errorCallbackURL: "/register",
+      });
+      if (error) {
+        open?.({
+          type: "error",
+          message: "Sign up with Google failed",
+          description: error.message || "An error occurred during Google sign up.",
+        });
+      }
+    } catch (e: any) {
+      open?.({
+        type: "error",
+        message: "Sign up with Google failed",
+        description: e.message || "An unexpected error occurred during Google sign up.",
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
   };
 
-  const handleSignUpWithGitHub = () => {
-    register({
-      providerName: "github",
-    });
+  const handleSignUpWithGitHub = async () => {
+    setIsGitHubLoading(true);
+    try {
+      const { error } = await signIn.social({
+        provider: "github",
+        callbackURL: "/",
+        errorCallbackURL: "/register",
+      });
+      if (error) {
+        open?.({
+          type: "error",
+          message: "Sign up with GitHub failed",
+          description: error.message || "An error occurred during GitHub sign up.",
+        });
+      }
+    } catch (e: any) {
+      open?.({
+        type: "error",
+        message: "Sign up with GitHub failed",
+        description: e.message || "An unexpected error occurred during GitHub sign up.",
+      });
+    } finally {
+      setIsGitHubLoading(false);
+    }
   };
 
   return (
@@ -113,16 +189,49 @@ export const SignUpForm = () => {
 
         <CardContent className={cn("px-0")}>
           <form onSubmit={handleSignUp}>
-            <div className={cn("flex", "flex-col", "gap-2")}>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder=""
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+            <div className={cn("flex", "flex-col", "gap-4")}>
+              <div className={cn("flex", "flex-col", "gap-2", "items-center", "mb-4")}>
+                <Label>Profile Picture</Label>
+                <UploadWidget
+                  value={image}
+                  onChange={(val) => setImage(val)}
+                />
+              </div>
+              <div className={cn("flex", "flex-col", "gap-2")}>
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className={cn("flex", "flex-col", "gap-2")}>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="email@example.com"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className={cn("flex", "flex-col", "gap-2")}>
+                <Label htmlFor="role">Role</Label>
+                <Select value={role} onValueChange={(val) => setRole(val as UserRole)}>
+                  <SelectTrigger id="role">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={UserRole.STUDENT}>Student</SelectItem>
+                    <SelectItem value={UserRole.TEACHER}>Teacher</SelectItem>
+                    <SelectItem value={UserRole.ADMIN}>Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div
@@ -176,6 +285,7 @@ export const SignUpForm = () => {
                   className={cn("flex", "items-center", "gap-2")}
                   onClick={handleSignUpWithGoogle}
                   type="button"
+                  disabled={loading || isGoogleLoading || isGitHubLoading}
                 >
                   <svg
                     width="21"
@@ -189,13 +299,14 @@ export const SignUpForm = () => {
                       fill="currentColor"
                     />
                   </svg>
-                  <div>Google</div>
+                  <div>{isGoogleLoading ? "Loading..." : "Google"}</div>
                 </Button>
                 <Button
                   variant="outline"
                   className={cn("flex", "items-center", "gap-2")}
                   onClick={handleSignUpWithGitHub}
                   type="button"
+                  disabled={loading || isGoogleLoading || isGitHubLoading}
                 >
                   <svg
                     width="21"
@@ -211,7 +322,7 @@ export const SignUpForm = () => {
                       fill="currentColor"
                     />
                   </svg>
-                  <div>GitHub</div>
+                  <div>{isGitHubLoading ? "Loading..." : "GitHub"}</div>
                 </Button>
               </div>
             </div>

@@ -19,38 +19,68 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { useLink, useLogin, useRefineOptions } from "@refinedev/core";
+import { useLink, useRefineOptions } from "@refinedev/core";
+import { signIn } from "@/lib/auth";
+import { useNavigate } from "react-router";
 
 export const SignInForm = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const Link = useLink();
+  const navigate = useNavigate();
 
   const { title } = useRefineOptions();
 
-  const { mutate: login } = useLogin();
-
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-    login({
+    const { error } = await signIn.email({
       email,
       password,
     });
+
+    if (error) {
+        setError(error.message || "Failed to sign in");
+    } else {
+        navigate("/");
+    }
+    setLoading(false);
   };
 
-  const handleSignInWithGoogle = () => {
-    login({
-      providerName: "google",
-    });
+  const handleSignInWithGoogle = async () => {
+    try {
+      const { error } = await signIn.social({
+        provider: "google",
+        callbackURL: "/",
+        errorCallbackURL: "/login",
+      });
+      if (error) {
+        setError(error.message || "Failed to sign in with Google");
+      }
+    } catch (e: any) {
+      setError(e.message || "An unexpected error occurred during Google sign in");
+    }
   };
 
-  const handleSignInWithGitHub = () => {
-    login({
-      providerName: "github",
-    });
+  const handleSignInWithGitHub = async () => {
+    try {
+      const { error } = await signIn.social({
+        provider: "github",
+        callbackURL: "/",
+        errorCallbackURL: "/login",
+      });
+      if (error) {
+        setError(error.message || "Failed to sign in with GitHub");
+      }
+    } catch (e: any) {
+      setError(e.message || "An unexpected error occurred during GitHub sign in");
+    }
   };
 
   return (
@@ -97,6 +127,11 @@ export const SignInForm = () => {
         <Separator />
 
         <CardContent className={cn("px-0")}>
+          {error && (
+            <div className="mb-4 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSignIn}>
             <div className={cn("flex", "flex-col", "gap-2")}>
               <Label htmlFor="email">Email</Label>
