@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router";
 import { User, LogOut, LogIn, UserPlus } from "lucide-react";
+import { useNotification } from "@refinedev/core";
 
 export default function AccountPage() {
     const { data: session, isPending } = useSession();
     const navigate = useNavigate();
+    const { open } = useNotification();
 
     if (isPending) {
         return <div className="flex items-center justify-center h-full">Loading...</div>;
@@ -81,8 +83,16 @@ export default function AccountPage() {
                             <Button 
                                 variant="destructive" 
                                 onClick={async () => {
-                                    await signOut();
-                                    navigate("/login");
+                                    const { error } = await signOut();
+                                    if (error) {
+                                        open?.({
+                                            type: "error",
+                                            message: "Logout failed",
+                                            description: error.message || "An error occurred while signing out.",
+                                        });
+                                    } else {
+                                        navigate("/login");
+                                    }
                                 }}
                             >
                                 <LogOut className="mr-2 h-4 w-4" />

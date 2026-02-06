@@ -15,6 +15,8 @@ export default function VerifyEmailPage() {
     const { open } = useNotification();
 
     useEffect(() => {
+        let isMounted = true;
+
         if (!token) {
             setStatus("error");
             setMessage("Invalid verification link.");
@@ -25,6 +27,8 @@ export default function VerifyEmailPage() {
             const { error } = await authClient.verifyEmail({
                 query: { token }
             });
+
+            if (!isMounted) return;
 
             if (error) {
                 setStatus("error");
@@ -41,7 +45,12 @@ export default function VerifyEmailPage() {
         };
 
         verify();
-    }, [token, open]);
+
+        return () => {
+            isMounted = false;
+        };
+
+    }, [token]);
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-muted/40">

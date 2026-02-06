@@ -3,14 +3,14 @@ import { authClient } from "@/lib/auth";
 
 export const authProvider: AuthProvider = {
     login: async ({ email, password }) => {
-        console.log(`[AuthProvider] Attempting login for ${email}`);
+
         const { data, error } = await authClient.signIn.email({
             email,
             password,
         });
 
         if (error) {
-            console.log(`[AuthProvider] Login failed:`, error);
+
             return {
                 success: false,
                 error: {
@@ -18,12 +18,6 @@ export const authProvider: AuthProvider = {
                     message: error.message || "Invalid email or password",
                 },
             };
-        }
-
-        if (data?.token) {
-            console.log(`[AuthProvider] Login success! Token received: ${data.token.substring(0, 10)}...`);
-            // Better Auth automatically stores the token in cookies
-            // You don't need to manually save it to localStorage
         }
 
         return {
@@ -82,10 +76,12 @@ export const authProvider: AuthProvider = {
         return null;
     },
     onError: async (error) => {
-        if (error.statusCode === 401 || error.statusCode === 403) {
+        const statusCode = error?.statusCode ?? error?.status;
+        if (statusCode === 401 || statusCode === 403) {
             return {
                 logout: true,
                 redirectTo: "/login",
+                error,
             };
         }
 

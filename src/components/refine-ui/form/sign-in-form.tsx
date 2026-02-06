@@ -54,15 +54,33 @@ export const SignInForm = () => {
   };
 
   const handleSignInWithGoogle = async () => {
-    await signIn.social({
-      provider: "google",
-    });
+    try {
+      const { error } = await signIn.social({
+        provider: "google",
+        callbackURL: "/",
+        errorCallbackURL: "/login",
+      });
+      if (error) {
+        setError(error.message || "Failed to sign in with Google");
+      }
+    } catch (e: any) {
+      setError(e.message || "An unexpected error occurred during Google sign in");
+    }
   };
 
   const handleSignInWithGitHub = async () => {
-    await signIn.social({
-      provider: "github",
-    });
+    try {
+      const { error } = await signIn.social({
+        provider: "github",
+        callbackURL: "/",
+        errorCallbackURL: "/login",
+      });
+      if (error) {
+        setError(error.message || "Failed to sign in with GitHub");
+      }
+    } catch (e: any) {
+      setError(e.message || "An unexpected error occurred during GitHub sign in");
+    }
   };
 
   return (
@@ -109,6 +127,11 @@ export const SignInForm = () => {
         <Separator />
 
         <CardContent className={cn("px-0")}>
+          {error && (
+            <div className="mb-4 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSignIn}>
             <div className={cn("flex", "flex-col", "gap-2")}>
               <Label htmlFor="email">Email</Label>

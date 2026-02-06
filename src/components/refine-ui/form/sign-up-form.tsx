@@ -41,6 +41,8 @@ export const SignUpForm = () => {
   const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
   const [image, setImage] = useState<UploadWidgetValue | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGitHubLoading, setIsGitHubLoading] = useState(false);
 
   const { open } = useNotification();
   const navigate = useNavigate();
@@ -91,15 +93,55 @@ export const SignUpForm = () => {
   };
 
   const handleSignUpWithGoogle = async () => {
-    await signIn.social({
-      provider: "google",
-    });
+    setIsGoogleLoading(true);
+    try {
+      const { error } = await signIn.social({
+        provider: "google",
+        callbackURL: "/",
+        errorCallbackURL: "/register",
+      });
+      if (error) {
+        open?.({
+          type: "error",
+          message: "Sign up with Google failed",
+          description: error.message || "An error occurred during Google sign up.",
+        });
+      }
+    } catch (e: any) {
+      open?.({
+        type: "error",
+        message: "Sign up with Google failed",
+        description: e.message || "An unexpected error occurred during Google sign up.",
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
   };
 
   const handleSignUpWithGitHub = async () => {
-    await signIn.social({
-      provider: "github",
-    });
+    setIsGitHubLoading(true);
+    try {
+      const { error } = await signIn.social({
+        provider: "github",
+        callbackURL: "/",
+        errorCallbackURL: "/register",
+      });
+      if (error) {
+        open?.({
+          type: "error",
+          message: "Sign up with GitHub failed",
+          description: error.message || "An error occurred during GitHub sign up.",
+        });
+      }
+    } catch (e: any) {
+      open?.({
+        type: "error",
+        message: "Sign up with GitHub failed",
+        description: e.message || "An unexpected error occurred during GitHub sign up.",
+      });
+    } finally {
+      setIsGitHubLoading(false);
+    }
   };
 
   return (
@@ -243,6 +285,7 @@ export const SignUpForm = () => {
                   className={cn("flex", "items-center", "gap-2")}
                   onClick={handleSignUpWithGoogle}
                   type="button"
+                  disabled={loading || isGoogleLoading || isGitHubLoading}
                 >
                   <svg
                     width="21"
@@ -256,13 +299,14 @@ export const SignUpForm = () => {
                       fill="currentColor"
                     />
                   </svg>
-                  <div>Google</div>
+                  <div>{isGoogleLoading ? "Loading..." : "Google"}</div>
                 </Button>
                 <Button
                   variant="outline"
                   className={cn("flex", "items-center", "gap-2")}
                   onClick={handleSignUpWithGitHub}
                   type="button"
+                  disabled={loading || isGoogleLoading || isGitHubLoading}
                 >
                   <svg
                     width="21"
@@ -278,7 +322,7 @@ export const SignUpForm = () => {
                       fill="currentColor"
                     />
                   </svg>
-                  <div>GitHub</div>
+                  <div>{isGitHubLoading ? "Loading..." : "GitHub"}</div>
                 </Button>
               </div>
             </div>

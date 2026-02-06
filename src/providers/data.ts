@@ -10,18 +10,27 @@ const axiosInstance = axios.create({
     withCredentials: true, // ✅ This will now actually work!
 });
 
-axiosInstance.interceptors.request.use((config) => {
-    console.log(`[Axios] ${config.method?.toUpperCase()} ${config.url}`);
-    return config;
-});
+const shouldLogAxios = import.meta.env?.DEV === true;
+const scrubUrl = (url?: string) => url?.split("?")[0];
+
+    axiosInstance.interceptors.request.use((config) => {
+            if (shouldLogAxios) {
+                    console.debug(`[Axios] ${config.method?.toUpperCase()} ${scrubUrl(config.url)}`);
+                }
+            return config;
+        });
 
 axiosInstance.interceptors.response.use(
     (response) => {
-        console.log(`[Axios] ✅ ${response.status} from ${response.config.url}`);
+        if (shouldLogAxios) {
+            console.debug(`[Axios] ✅ ${response.status} from ${scrubUrl(response.config.url)}`);
+        }
         return response;
     },
     (error) => {
-        console.error(`[Axios] ❌ Error from ${error.config?.url}:`, error.response?.status);
+        if (shouldLogAxios) {
+            console.debug(`[Axios] ❌ Error from ${scrubUrl(error.config?.url)}:`, error.response?.status);
+        }
         return Promise.reject(error);
     }
 );
@@ -35,15 +44,21 @@ const buildHttpError = (error: AxiosError): HttpError => {
 };
 
 export const dataProvider: DataProvider = {
-    getList: async ({ resource, pagination, filters }) => {
+    getList: async ({ resource, pagination, filters, sorters }) => {
         try {
             const page = pagination?.current ?? 1;
             const pageSize = pagination?.pageSize ?? 10;
 
             const params: Record<string, string | number> = { page, limit: pageSize };
 
+            if (sorters && sorters.length > 0) {
+                params.sortField = sorters[0].field;
+                params.sortOrder = sorters[0].order;
+            }
+
             filters?.forEach((filter) => {
                 const field = 'field' in filter ? filter.field : '';
+                if (filter.value == null || filter.value === "") return;
                 const value = String(filter.value);
 
                 if (resource === 'subjects') {

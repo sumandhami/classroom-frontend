@@ -1,9 +1,12 @@
 import { createAuthClient } from "better-auth/react";
 
+const rawBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL;
+if (!rawBaseUrl) {
+        throw new Error("VITE_BACKEND_BASE_URL is required");
+    }
+
 export const authClient = createAuthClient({
-    baseURL: import.meta.env.VITE_BACKEND_BASE_URL.endsWith('/api')
-        ? import.meta.env.VITE_BACKEND_BASE_URL.slice(0, -4)
-        : import.meta.env.VITE_BACKEND_BASE_URL,
+        baseURL: rawBaseUrl.endsWith("/api") ? rawBaseUrl.slice(0, -4) : rawBaseUrl,
 
     fetchOptions: {
         credentials: "include", // ✅ This is all you need for cookies!
