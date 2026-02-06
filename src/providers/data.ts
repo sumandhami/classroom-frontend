@@ -1,133 +1,154 @@
-import {createDataProvider, CreateDataProviderOptions} from "@refinedev/rest";
-import {BACKEND_BASE_URL} from "@/constants";
-import {CreateResponse, ListResponse} from "@/types";
-import {GetOneResponse, HttpError} from "@refinedev/core";
+import { DataProvider, HttpError } from "@refinedev/core";
+import { BACKEND_BASE_URL } from "@/constants";
+import { CreateResponse, ListResponse, GetOneResponse } from "@/types";
+import axios, { AxiosError } from "axios";
 
-if (!BACKEND_BASE_URL) throw new Error("BACKEND_BASE_URL is not configured. Please set VITE_BACKEND_BASE_URL in your .env file.");
+if (!BACKEND_BASE_URL) throw new Error("BACKEND_BASE_URL is not configured.");
 
-const buildHttpError = async (response: Response): Promise<HttpError> => {
-    let message = 'Request failed.';
+const axiosInstance = axios.create({
+    baseURL: BACKEND_BASE_URL,
+    withCredentials: true, // ✅ This will now actually work!
+});
 
-    try {
-        const payload = (await response.json()) as {message?: string}
+axiosInstance.interceptors.request.use((config) => {
+    console.log(`[Axios] ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
+});
 
-        if(payload?.message) message = payload.message;
-    }catch {
-        //Ignore errors
+axiosInstance.interceptors.response.use(
+    (response) => {
+        console.log(`[Axios] ✅ ${response.status} from ${response.config.url}`);
+        return response;
+    },
+    (error) => {
+        console.error(`[Axios] ❌ Error from ${error.config?.url}:`, error.response?.status);
+        return Promise.reject(error);
     }
+);
 
+const buildHttpError = (error: AxiosError): HttpError => {
+    const message = (error.response?.data as any)?.message || error.message || 'Request failed';
     return {
         message,
-        statusCode: response.status
-    }
-}
+        statusCode: error.response?.status || 500
+    };
+};
 
-const options: CreateDataProviderOptions = {
-    getList: {
-        getEndpoint: ({ resource }) => resource,
-
-        buildQueryParams: async ({resource, pagination, filters}) => {
-            const page = pagination?.currentPage ?? 1;
+export const dataProvider: DataProvider = {
+    getList: async ({ resource, pagination, filters }) => {
+        try {
+            const page = pagination?.current ?? 1;
             const pageSize = pagination?.pageSize ?? 10;
 
-            const params: Record<string, string|number> = {page, limit: pageSize};
+            const params: Record<string, string | number> = { page, limit: pageSize };
 
             filters?.forEach((filter) => {
                 const field = 'field' in filter ? filter.field : '';
-
                 const value = String(filter.value);
 
-                if(resource === 'subjects') {
-                    if(field === 'departmentId' || field === 'department') params.department = value;
-                    if(field === 'name' || field === 'code' || field === 'q') params.search = value;
+                if (resource === 'subjects') {
+                    if (field === 'departmentId' || field === 'department') params.department = value;
+                    if (field === 'name' || field === 'code' || field === 'q') params.search = value;
                 }
 
-                if(resource === 'classes') {
-                    if(field === 'name' || field === 'q') params.search = value;
-                    if(field === 'subjectId' || field === 'subject') params.subject = value;
-                    if(field === 'teacherId' || field === 'teacher') params.teacher = value;
+                if (resource === 'classes') {
+                    if (field === 'name' || field === 'q') params.search = value;
+                    if (field === 'subjectId' || field === 'subject') params.subject = value;
+                    if (field === 'teacherId' || field === 'teacher') params.teacher = value;
                 }
 
-                if(resource === 'users') {
-                    if(field === 'role') params.role = value;
-                    if(field === 'name' || field === 'email' || field === 'q') params.search = value;
+                if (resource === 'users') {
+                    if (field === 'role') params.role = value;
+                    if (field === 'name' || field === 'email' || field === 'q') params.search = value;
                 }
 
-                if(resource === 'departments') {
-                    if(field === 'name' || field === 'code' || field === 'q') params.search = value;
+                if (resource === 'departments') {
+                    if (field === 'name' || field === 'code' || field === 'q') params.search = value;
                 }
-            })
+            });
 
-            return params;
-        },
+            const response = await axiosInstance.get<ListResponse>(resource, { params });
 
-        mapResponse: async (response) => {
-            if(!response.ok) throw await buildHttpError(response);
-
-            const payload: ListResponse = await response.clone().json();
-
-            return payload.data ?? [];
-        },
-
-        getTotalCount: async (response) => {
-            if(!response.ok) throw await buildHttpError(response);
-
-            const payload: ListResponse = await response.clone().json();
-
-            return payload.pagination?.total ?? payload.data?.length ?? 0;
+            return {
+                data: response.data.data ?? [],
+                total: response.data.pagination?.total ?? response.data.data?.length ?? 0,
+            };
+        } catch (error) {
+            throw buildHttpError(error as AxiosError);
         }
     },
 
-    create: {
-        getEndpoint: ({ resource }) => resource,
+    getOne: async ({ resource, id }) => {
+        try {
+            const response = await axiosInstance.get<GetOneResponse>(`${resource}/${id}`);
+            return {
+                data: response.data.data,
+            };
+        } catch (error) {
+            throw buildHttpError(error as AxiosError);
+        }
+    },
 
-        buildBodyParams: async ({variables}) => variables,
+    create: async ({ resource, variables }) => {
+        try {
+            const response = await axiosInstance.post<CreateResponse>(resource, variables);
+            return {
+                data: response.data.data,
+            };
+        } catch (error) {
+            throw buildHttpError(error as AxiosError);
+        }
+    },
 
-        mapResponse: async (response) => {
-            const json: CreateResponse = await response.json();
+    update: async ({ resource, id, variables }) => {
+        try {
+            const response = await axiosInstance.put<CreateResponse>(`${resource}/${id}`, variables);
+            return {
+                data: response.data.data,
+            };
+        } catch (error) {
+            throw buildHttpError(error as AxiosError);
+        }
+    },
 
-            if (!json.data) {
-                throw new Error('Resource not found');
+    deleteOne: async ({ resource, id }) => {
+        try {
+            const response = await axiosInstance.delete<CreateResponse>(`${resource}/${id}`);
+            return {
+                data: response.data.data,
+            };
+        } catch (error) {
+            throw buildHttpError(error as AxiosError);
+        }
+    },
+
+    custom: async ({ url, method, filters, sorters, payload, query, headers }) => {
+        try {
+            let requestUrl = `${url}`;
+
+            // Build query params if provided
+            if (query) {
+                const queryParams = new URLSearchParams();
+                Object.entries(query).forEach(([key, value]) => {
+                    queryParams.append(key, String(value));
+                });
+                requestUrl = `${requestUrl}?${queryParams.toString()}`;
             }
 
-            return json.data ;
+            const response = await axiosInstance.request({
+                url: requestUrl,
+                method: method || 'get',
+                data: payload,
+                headers,
+            });
+
+            return {
+                data: response.data,
+            };
+        } catch (error) {
+            throw buildHttpError(error as AxiosError);
         }
     },
 
-    update: {
-        getEndpoint: ({ resource, id }) => `${resource}/${id}`,
-        buildBodyParams: async ({variables}) => variables,
-        mapResponse: async (response) => {
-            const json = await response.json();
-            if (!json.data) throw new Error('Resource not found');
-            return json.data;
-        }
-    },
-
-    deleteOne: {
-        getEndpoint: ({ resource, id }) => `${resource}/${id}`,
-        mapResponse: async (response) => {
-            const json = await response.json();
-            if (!response.ok) throw await buildHttpError(response);
-            return json.data;
-        }
-    },
-
-    getOne: {
-        getEndpoint: ({ resource, id}) => `${resource}/${id}`,
-
-        mapResponse: async (response) => {
-            const json: GetOneResponse = await response.json();
-
-            if (!json.data) {
-                throw new Error('Resource not found');
-            }
-
-            return json.data;
-        }
-    }
-}
-
-const { dataProvider } = createDataProvider(BACKEND_BASE_URL, options);
-
-export { dataProvider };
+    getApiUrl: () => BACKEND_BASE_URL,
+};
