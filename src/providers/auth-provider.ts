@@ -42,12 +42,17 @@ export const authProvider: AuthProvider = {
             redirectTo: "/login",
         };
     },
-    check: async () => {
-        const { data: session } = await authClient.getSession();
-        if (session) {
-            return {
-                authenticated: true,
-            };
+   check: async () => {
+        try {
+            const { data: session } = await authClient.getSession();
+            if (session) {
+                return {
+                    authenticated: true,
+                };
+            }
+        } catch (error) {
+            console.error("Auth check failed:", error);
+            // ✅ Return unauthenticated instead of throwing
         }
 
         return {

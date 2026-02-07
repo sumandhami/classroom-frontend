@@ -97,34 +97,18 @@ function App() {
             >
               <Routes>
 
-                <Route
-                  element={
-                    <Authenticated
-                      key="authenticated-outer"
-                      fallback={<Outlet />}
-                    >
-                      <Outlet />
-                    </Authenticated>
-                  }
-                >
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/verify-email" element={<VerifyEmailPage />} />
-                </Route>
 
-                <Route
-                  element={
-                    <Authenticated
-                      key="authenticated-inner"
-                      fallback={<Outlet />}
-                    >
-                      <Layout>
-                        <Outlet />
-                      </Layout>
-                    </Authenticated>
-                  }
-                >
+              <Route
+    element={
+      <Layout>
+        <Outlet />
+      </Layout>
+    }
+  >
                   <Route index element={<Dashboard />} />
                   <Route path="departments">
                     <Route index element={<DepartmentsList />} />
