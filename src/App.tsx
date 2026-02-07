@@ -58,7 +58,7 @@ function App() {
                   {
                       name: 'dashboard',
                       list: '/',
-                      meta: { label: 'Home', icon: <Home />}
+                      meta: { label: 'Home', icon: <Home />, dataProviderName: 'default'}
                   },
                   {
                       name: 'departments',

@@ -19,38 +19,63 @@ import {
 } from 'recharts';
 
 const Dashboard = () => {
-    const { data: stats } = useCustom({
-        url: `dashboard/stats`,
+    // ✅ Destructure correctly from useCustom
+    const { query: statsQuery } = useCustom({
+        url: `/dashboard/stats`,
         method: "get",
     });
 
-    const { data: trends } = useCustom({
-        url: `dashboard/charts/enrollment-trends`,
+    const { query: trendsQuery } = useCustom({
+        url: `/dashboard/charts/enrollment-trends`,
         method: "get",
     });
 
-    const { data: depts } = useCustom({
-        url: `dashboard/charts/classes-by-dept`,
+    const { query: deptsQuery } = useCustom({
+        url: `/dashboard/charts/classes-by-dept`,
         method: "get",
     });
 
-    const { data: users } = useCustom({
-        url: `dashboard/charts/user-distribution`,
+    const { query: usersQuery } = useCustom({
+        url: `/dashboard/charts/user-distribution`,
         method: "get",
     });
 
-    const { data: capacity } = useCustom({
-        url: `dashboard/charts/capacity-status`,
+    const { query: capacityQuery } = useCustom({
+        url: `/dashboard/charts/capacity-status`,
         method: "get",
     });
 
-    const statsData = stats?.data?.data || { users: 0, classes: 0, enrollments: 0, subjects: 0 };
-    const trendsData = trends?.data?.data || [];
-    const deptsData = depts?.data?.data || [];
-    const usersData = users?.data?.data || [];
-    const capacityData = capacity?.data?.data || [];
+    // ✅ Access data from query.data
+    const statsData = statsQuery.data?.data?.data || { users: 0, classes: 0, enrollments: 0, subjects: 0 };
+    const trendsData = trendsQuery.data?.data?.data || [];
+    const deptsData = deptsQuery.data?.data?.data || [];
+    const usersData = usersQuery.data?.data?.data || [];
+    const capacityData = capacityQuery.data?.data?.data || [];
+
+    console.log('📦 Final extracted data:', {
+        statsData,
+        trendsData,
+        deptsData,
+        usersData,
+        capacityData
+    });
 
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
+    if (statsQuery.isLoading) {
+        return <div className="p-6">Loading dashboard...</div>;
+    }
+
+    if (statsQuery.isError) {
+        return (
+            <div className="p-6">
+                <h1 className="text-3xl font-bold text-red-600">Error Loading Dashboard</h1>
+                <pre className="mt-4 p-4 bg-red-50 rounded">
+                    {JSON.stringify(statsQuery.error, null, 2)}
+                </pre>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 space-y-6">
@@ -95,15 +120,21 @@ const Dashboard = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={trendsData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={2} />
-                            </LineChart>
-                        </ResponsiveContainer>
+                        {trendsData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={trendsData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Line type="monotone" dataKey="count" stroke="#8884d8" strokeWidth={2} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-muted-foreground">
+                                No enrollment data
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -116,15 +147,21 @@ const Dashboard = () => {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={deptsData}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="count" fill="#82ca9d" />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        {deptsData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={deptsData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Bar dataKey="count" fill="#82ca9d" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-muted-foreground">
+                                No department data
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -134,26 +171,32 @@ const Dashboard = () => {
                         <CardTitle>User Distribution</CardTitle>
                     </CardHeader>
                     <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={usersData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                >
-                                    {usersData.map((entry: any, index: number) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                <Legend />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        {usersData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={usersData}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        {usersData.map((entry: any, index: number) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-muted-foreground">
+                                No user data
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -163,25 +206,31 @@ const Dashboard = () => {
                         <CardTitle>Class Capacity Status</CardTitle>
                     </CardHeader>
                     <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={capacityData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                >
-                                    {capacityData.map((entry: any, index: number) => (
-                                        <Cell key={`cell-${index}`} fill={entry.name === 'Full' ? '#ef4444' : entry.name === 'Near Capacity' ? '#f59e0b' : '#10b981'} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                <Legend />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        {capacityData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={capacityData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {capacityData.map((entry: any, index: number) => (
+                                            <Cell key={`cell-${index}`} fill={entry.name === 'Full' ? '#ef4444' : entry.name === 'Near Capacity' ? '#f59e0b' : '#10b981'} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-muted-foreground">
+                                No capacity data
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

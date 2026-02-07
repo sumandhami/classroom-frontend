@@ -44,7 +44,7 @@ const buildHttpError = (error: AxiosError): HttpError => {
 };
 
 export const dataProvider: DataProvider = {
-    getList: async ({ resource, pagination, filters, sorters }) => {
+    getList: async ({ resource, pagination, filters, sorters, meta }) => {
         try {
             const page = pagination?.current ?? 1;
             const pageSize = pagination?.pageSize ?? 10;
@@ -137,33 +137,41 @@ export const dataProvider: DataProvider = {
         }
     },
 
-    custom: async ({ url, method, filters, sorters, payload, query, headers }) => {
-        try {
-            let requestUrl = `${url}`;
 
-            // Build query params if provided
-            if (query) {
-                const queryParams = new URLSearchParams();
-                Object.entries(query).forEach(([key, value]) => {
-                    queryParams.append(key, String(value));
-                });
-                requestUrl = `${requestUrl}?${queryParams.toString()}`;
-            }
+custom: async ({ url, method, filters, sorters, payload, query, headers }) => {
+    try {
+        let requestUrl = `${url}`;
 
-            const response = await axiosInstance.request({
-                url: requestUrl,
-                method: method || 'get',
-                data: payload,
-                headers,
+        if (query) {
+            const queryParams = new URLSearchParams();
+            Object.entries(query).forEach(([key, value]) => {
+                queryParams.append(key, String(value));
             });
-
-            return {
-                data: response.data,
-            };
-        } catch (error) {
-            throw buildHttpError(error as AxiosError);
+            requestUrl = `${requestUrl}?${queryParams.toString()}`;
         }
-    },
+
+        console.log('🌐 Custom API Request:', requestUrl);
+
+        const response = await axiosInstance.request({
+            url: requestUrl,
+            method: method || 'get',
+            data: payload,
+            headers,
+        });
+
+        console.log('✅ Custom API Response:', response.data);
+        
+        // ✅ Log what we're actually returning
+        const returnValue = { data: response.data };
+        console.log('🔄 Returning from custom method:', returnValue);
+
+        return returnValue;
+    } catch (error) {
+        console.error('❌ Custom API Error:', error);
+        throw buildHttpError(error as AxiosError);
+    }
+},
+
 
     getApiUrl: () => BACKEND_BASE_URL,
 };
