@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { type BaseKey, useShowButton } from "@refinedev/core";
 import { Eye } from "lucide-react";

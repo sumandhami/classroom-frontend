@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { type BaseKey, useEditButton } from "@refinedev/core";
 import { Pencil } from "lucide-react";

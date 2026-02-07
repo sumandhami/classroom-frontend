@@ -1,5 +1,3 @@
-"use client";
-
 import type { BaseRecord, HttpError } from "@refinedev/core";
 import type { UseTableReturnType } from "@refinedev/react-table";
 import type { Column } from "@tanstack/react-table";

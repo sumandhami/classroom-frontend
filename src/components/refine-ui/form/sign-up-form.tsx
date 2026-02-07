@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 
 import { InputPassword } from "@/components/refine-ui/form/input-password";

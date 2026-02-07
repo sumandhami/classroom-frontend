@@ -1,5 +1,3 @@
-"use client";
-
 import { useTranslate, type CrudOperators } from "@refinedev/core";
 import type { Column, Table as ReactTable } from "@tanstack/react-table";
 import { Check, ChevronsUpDown, ListFilter, X } from "lucide-react";
