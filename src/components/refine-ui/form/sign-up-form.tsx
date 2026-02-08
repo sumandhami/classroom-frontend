@@ -95,7 +95,8 @@ const handleSignUpWithGoogle = async () => {
   try {
     const { error } = await signIn.social({
       provider: "google",
-      callbackURL: window.location.origin + "/", // Use absolute URL
+      callbackURL: window.location.origin + "/",
+      errorCallbackURL: window.location.origin + "/register",
     });
     if (error) {
       open?.({
