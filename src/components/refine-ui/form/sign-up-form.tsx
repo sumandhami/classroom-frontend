@@ -90,57 +90,56 @@ export const SignUpForm = () => {
     setLoading(false);
   };
 
-  const handleSignUpWithGoogle = async () => {
-    setIsGoogleLoading(true);
-    try {
-      const { error } = await signIn.social({
-        provider: "google",
-        callbackURL: "/",
-        errorCallbackURL: "/register",
-      });
-      if (error) {
-        open?.({
-          type: "error",
-          message: "Sign up with Google failed",
-          description: error.message || "An error occurred during Google sign up.",
-        });
-      }
-    } catch (e: any) {
+const handleSignUpWithGoogle = async () => {
+  setIsGoogleLoading(true);
+  try {
+    const { error } = await signIn.social({
+      provider: "google",
+      callbackURL: window.location.origin + "/", // Use absolute URL
+    });
+    if (error) {
       open?.({
         type: "error",
         message: "Sign up with Google failed",
-        description: e.message || "An unexpected error occurred during Google sign up.",
+        description: error.message || "An error occurred during Google sign up.",
       });
-    } finally {
-      setIsGoogleLoading(false);
     }
-  };
+  } catch (e: any) {
+    open?.({
+      type: "error",
+      message: "Sign up with Google failed",
+      description: e.message || "An unexpected error occurred during Google sign up.",
+    });
+  } finally {
+    setIsGoogleLoading(false);
+  }
+};
 
   const handleSignUpWithGitHub = async () => {
-    setIsGitHubLoading(true);
-    try {
-      const { error } = await signIn.social({
-        provider: "github",
-        callbackURL: "/",
-        errorCallbackURL: "/register",
-      });
-      if (error) {
-        open?.({
-          type: "error",
-          message: "Sign up with GitHub failed",
-          description: error.message || "An error occurred during GitHub sign up.",
-        });
-      }
-    } catch (e: any) {
+  setIsGitHubLoading(true);
+  try {
+    const { error } = await signIn.social({
+      provider: "github",
+      callbackURL: window.location.origin + "/", // ✅ Change this
+      errorCallbackURL: window.location.origin + "/register", // ✅ And this
+    });
+    if (error) {
       open?.({
         type: "error",
         message: "Sign up with GitHub failed",
-        description: e.message || "An unexpected error occurred during GitHub sign up.",
+        description: error.message || "An error occurred during GitHub sign up.",
       });
-    } finally {
-      setIsGitHubLoading(false);
     }
-  };
+  } catch (e: any) {
+    open?.({
+      type: "error",
+      message: "Sign up with GitHub failed",
+      description: e.message || "An unexpected error occurred during GitHub sign up.",
+    });
+  } finally {
+    setIsGitHubLoading(false);
+  }
+};
 
   return (
     <div

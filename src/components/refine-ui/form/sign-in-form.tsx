@@ -51,35 +51,35 @@ export const SignInForm = () => {
     setLoading(false);
   };
 
-  const handleSignInWithGoogle = async () => {
-    try {
-      const { error } = await signIn.social({
-        provider: "google",
-        callbackURL: "/",
-        errorCallbackURL: "/login",
-      });
-      if (error) {
-        setError(error.message || "Failed to sign in with Google");
-      }
-    } catch (e: any) {
-      setError(e.message || "An unexpected error occurred during Google sign in");
+ const handleSignInWithGoogle = async () => {
+  try {
+    const { error } = await signIn.social({
+      provider: "google",
+      callbackURL: window.location.origin + "/", // ✅ Change to absolute URL
+      errorCallbackURL: window.location.origin + "/login",
+    });
+    if (error) {
+      setError(error.message || "Failed to sign in with Google");
     }
-  };
+  } catch (e: any) {
+    setError(e.message || "An unexpected error occurred during Google sign in");
+  }
+};
 
-  const handleSignInWithGitHub = async () => {
-    try {
-      const { error } = await signIn.social({
-        provider: "github",
-        callbackURL: "/",
-        errorCallbackURL: "/login",
-      });
-      if (error) {
-        setError(error.message || "Failed to sign in with GitHub");
-      }
-    } catch (e: any) {
-      setError(e.message || "An unexpected error occurred during GitHub sign in");
+ const handleSignInWithGitHub = async () => {
+  try {
+    const { error } = await signIn.social({
+      provider: "github",
+      callbackURL: window.location.origin + "/", // ✅ Change to absolute URL
+      errorCallbackURL: window.location.origin + "/login",
+    });
+    if (error) {
+      setError(error.message || "Failed to sign in with GitHub");
     }
-  };
+  } catch (e: any) {
+    setError(e.message || "An unexpected error occurred during GitHub sign in");
+  }
+};
 
   return (
     <div
