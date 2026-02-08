@@ -9,7 +9,7 @@ export const authClient = createAuthClient({
         baseURL: rawBaseUrl.endsWith("/api") ? rawBaseUrl.slice(0, -4) : rawBaseUrl,
 
     fetchOptions: {
-        credentials: "include", // ✅ This is all you need for cookies!
+        credentials: "include",
     },
 
     user: {
