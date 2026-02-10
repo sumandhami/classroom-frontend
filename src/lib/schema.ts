@@ -12,15 +12,34 @@ export const facultySchema = z.object({
 });
 
 export const subjectSchema = z.object({
-    name: z.string().min(3, "Subject name must be at least 3 characters"),
-    code: z.string().min(5, "Subject code must be at least 5 characters"),
+    name: z
+        .string({ required_error: "Subject name is required" })
+        .trim()
+        .min(3, "Subject name must be at least 3 characters")
+        .max(255, "Subject name must be at most 255 characters"),
+    code: z
+        .string({ required_error: "Subject code is required" })
+        .trim()
+        .toUpperCase()
+        .min(2, "Subject code must be at least 2 characters")
+        .max(50, "Subject code must be at most 50 characters"),
     description: z
         .string()
-        .min(5, "Subject description must be at least 5 characters"),
-    department: z
-        .string()
-        .min(2, "Subject department must be at least 2 characters"),
+        .trim()
+        .min(5, "Subject description must be at least 5 characters")
+        .max(500, "Subject description must be at most 500 characters")
+        .optional()
+        .default(""),
+    departmentId: z.coerce
+        .number({
+            required_error: "Department is required",
+            invalid_type_error: "Department is required",
+        })
+        .min(1, "Department is required"),
 });
+
+export type SubjectFormValues = z.infer<typeof subjectSchema>;
+
 
 const scheduleSchema = z.object({
     day: z.string().min(1, "Day is required"),
@@ -69,3 +88,30 @@ export const enrollmentSchema = z.object({
         .min(1, "Class ID is required"),
     studentId: z.string().min(1, "Student ID is required"),
 });
+
+export const departmentSchema = z.object({
+    code: z
+        .string({ required_error: "Code is required" })
+        .trim()
+        .toUpperCase()
+        .min(1, "Code is required")
+        .max(50, "Code must be at most 50 characters"),
+    name: z
+        .string({ required_error: "Name is required" })
+        .trim()
+        .min(2, "Name must be at least 2 characters")
+        .max(255, "Name must be at most 255 characters"),
+    description: z
+        .string()
+        .trim()
+        .max(255, "Description must be at most 255 characters")
+        .optional()
+        .default(""),
+});
+
+export const departmentUpdateSchema = departmentSchema.partial().extend({
+    id: z.number().int().positive(),
+});
+
+export type DepartmentFormValues = z.infer<typeof departmentSchema>;
+export type DepartmentUpdateValues = z.infer<typeof departmentUpdateSchema>;

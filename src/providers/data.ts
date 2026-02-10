@@ -7,7 +7,7 @@ if (!BACKEND_BASE_URL) throw new Error("BACKEND_BASE_URL is not configured.");
 
 const axiosInstance = axios.create({
     baseURL: BACKEND_BASE_URL,
-    withCredentials: true, // ✅ This will now actually work!
+    withCredentials: true, 
 });
 
 const shouldLogAxios = import.meta.env?.DEV === true;

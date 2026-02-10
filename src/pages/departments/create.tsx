@@ -1,23 +1,46 @@
 import {CreateView, CreateViewHeader} from "@/components/refine-ui/views/create-view.tsx";
 import {useForm} from "@refinedev/react-hook-form";
 import {Input} from "@/components/ui/input.tsx";
-import {Label} from "@/components/ui/label.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Card, CardContent} from "@/components/ui/card.tsx";
 import {Textarea} from "@/components/ui/textarea.tsx";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { departmentSchema } from "@/lib/schema";
+import * as z from "zod";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import { Loader2 } from "lucide-react";
 
 const DepartmentsCreate = () => {
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-        refineCore: { onFinish, formLoading },
-    } = useForm({
+    const form = useForm({
+        resolver: zodResolver(departmentSchema),
         refineCoreProps: {
             resource: "departments",
+            action: "create",
             redirect: "list",
         },
     });
+
+    const {
+        refineCore: { onFinish },
+        handleSubmit,
+        formState: { isSubmitting, errors },
+        control,
+    } = form;
+
+    const onSubmit = async (values: z.infer<typeof departmentSchema>) => {
+        try {
+            await onFinish(values);
+        } catch (error) {
+            console.error("Error creating department:", error);
+        }
+    };
 
     return (
         <CreateView>
@@ -25,42 +48,77 @@ const DepartmentsCreate = () => {
             
             <Card className="mt-4">
                 <CardContent className="pt-6">
-                    <form onSubmit={handleSubmit(onFinish)} className="flex flex-col gap-4">
-                        <div className="flex flex-col gap-2">
-                            <Label htmlFor="code">Code</Label>
-                            <Input
-                                id="code"
-                                placeholder="e.g. CS, MATH, PHY"
-                                {...register("code", { required: "Code is required" })}
+                    <Form {...form}>
+                        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+                            <FormField
+                                control={control}
+                                name="code"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>
+                                            Code <span className="text-orange-600">*</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="e.g. CS, MATH, PHY"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
                             />
-                            {errors.code && <p className="text-sm text-destructive">{errors.code.message as string}</p>}
-                        </div>
 
-                        <div className="flex flex-col gap-2">
-                            <Label htmlFor="name">Name</Label>
-                            <Input
-                                id="name"
-                                placeholder="e.g. Computer Science"
-                                {...register("name", { required: "Name is required" })}
+                            <FormField
+                                control={control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>
+                                            Name <span className="text-orange-600">*</span>
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="e.g. Computer Science"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
                             />
-                            {errors.name && <p className="text-sm text-destructive">{errors.name.message as string}</p>}
-                        </div>
 
-                        <div className="flex flex-col gap-2">
-                            <Label htmlFor="description">Description</Label>
-                            <Textarea
-                                id="description"
-                                placeholder="Department description..."
-                                {...register("description")}
+                            <FormField
+                                control={control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Description</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder="Department description..."
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
                             />
-                        </div>
 
-                        <div className="flex justify-end gap-2 mt-4">
-                            <Button type="submit" disabled={formLoading}>
-                                {formLoading ? "Saving..." : "Create"}
-                            </Button>
-                        </div>
-                    </form>
+                            <div className="flex justify-end gap-2 mt-4">
+                                <Button type="submit" disabled={isSubmitting}>
+                                    {isSubmitting ? (
+                                        <div className="flex gap-1">
+                                            <span>Creating...</span>
+                                            <Loader2 className="inline-block ml-2 animate-spin" />
+                                        </div>
+                                    ) : (
+                                        "Create Department"
+                                    )}
+                                </Button>
+                            </div>
+                        </form>
+                    </Form>
                 </CardContent>
             </Card>
         </CreateView>
