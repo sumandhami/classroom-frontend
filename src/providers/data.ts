@@ -43,22 +43,6 @@ const buildHttpError = (error: AxiosError): HttpError => {
     };
 };
 
-// ✅ NEW: Organization registration helper
-export const registerOrganization = async (payload: OrganizationSignUpPayload) => {
-    try {
-        const response = await axiosInstance.post('/organization/register', payload);
-        return {
-            success: true,
-            data: response.data,
-        };
-    } catch (error) {
-        const axiosError = error as AxiosError;
-        return {
-            success: false,
-            error: buildHttpError(axiosError),
-        };
-    }
-};
 
 export const dataProvider: DataProvider = {
     getList: async ({ resource, pagination, filters, sorters, meta }) => {
@@ -166,23 +150,17 @@ export const dataProvider: DataProvider = {
                 requestUrl = `${requestUrl}?${queryParams.toString()}`;
             }
 
-            console.log('🌐 Custom API Request:', requestUrl);
-
             const response = await axiosInstance.request({
                 url: requestUrl,
                 method: method || 'get',
                 data: payload,
                 headers,
             });
-
-            console.log('✅ Custom API Response:', response.data);
             
             const returnValue = { data: response.data };
-            console.log('🔄 Returning from custom method:', returnValue);
 
             return returnValue;
         } catch (error) {
-            console.error('❌ Custom API Error:', error);
             throw buildHttpError(error as AxiosError);
         }
     },

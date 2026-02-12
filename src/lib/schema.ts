@@ -116,46 +116,56 @@ export const departmentUpdateSchema = departmentSchema.partial().extend({
 export type DepartmentFormValues = z.infer<typeof departmentSchema>;
 export type DepartmentUpdateValues = z.infer<typeof departmentUpdateSchema>;
 
-// ✅ NEW: Organization registration schema
+
+// ✅ Full signup schema (includes organization + admin details)
 export const organizationSignUpSchema = z.object({
-    // Organization details
+    // Organization details (spread the shared schema)
     organizationName: z
-        .string({ required_error: "Organization name is required" })
-        .min(2, "Organization name must be at least 2 characters")
-        .max(255, "Organization name must be at most 255 characters"),
+        .string()
+        .min(1, "Organization name cannot be empty")
+        .max(255, "Organization name is too long")
+        .trim(),
     organizationType: z.enum(["school", "college", "university", "coaching"], {
-        required_error: "Please select organization type",
+        message: "Please select organization type"
     }),
     organizationEmail: z
-        .string({ required_error: "Organization email is required" })
-        .email("Invalid email address"),
+        .string()
+        .min(1, "Organization email is required")
+        .email("Invalid email address")
+        .toLowerCase()
+        .trim(),
     organizationPhone: z
         .string()
-        .min(10, "Phone number must be at least 10 characters")
+        .trim()
         .optional()
         .or(z.literal("")),
     organizationAddress: z
         .string()
-        .min(5, "Address must be at least 5 characters")
+        .trim()
         .optional()
         .or(z.literal("")),
     
     // Admin user details
     adminName: z
-        .string({ required_error: "Admin name is required" })
+        .string()
         .min(2, "Admin name must be at least 2 characters")
-        .max(255, "Admin name must be at most 255 characters"),
+        .max(255, "Admin name must be at most 255 characters")
+        .trim(),
     adminEmail: z
-        .string({ required_error: "Admin email is required" })
-        .email("Invalid email address"),
+        .string()
+        .min(1, "Admin email is required")
+        .email("Invalid email address")
+        .toLowerCase()
+        .trim(),
     adminPassword: z
-        .string({ required_error: "Password is required" })
+        .string()
         .min(8, "Password must be at least 8 characters")
         .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
         .regex(/[a-z]/, "Password must contain at least one lowercase letter")
         .regex(/[0-9]/, "Password must contain at least one number"),
     confirmPassword: z
-        .string({ required_error: "Please confirm your password" }),
+        .string()
+        .min(1, "Please confirm your password"),
 }).refine((data) => data.adminPassword === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],

@@ -74,6 +74,7 @@ export const authProvider: AuthProvider = {
         console.log("🚫 [Auth] Not authenticated, redirecting...");
         return {
             authenticated: false,
+            logout: true,
             redirectTo: "/login",
         };
     },
