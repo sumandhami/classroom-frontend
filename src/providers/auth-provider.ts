@@ -55,23 +55,20 @@ export const authProvider: AuthProvider = {
     },
     
     check: async () => {
-        console.log("🔍 [Auth] Checking authentication...");
         
         try {
             const { data: session, error } = await authClient.getSession();
-            console.log("📦 [Auth] Session response:", { session, error });
             
             if (session?.user) {
-                console.log("✅ [Auth] User is authenticated");
                 return {
                     authenticated: true,
                 };
             }
         } catch (error) {
-            console.error("❌ [Auth] Check error:", error);
+              if (import.meta.env?.DEV) {
+               console.error("[Auth] Check error:", error);
+           }
         }
-
-        console.log("🚫 [Auth] Not authenticated, redirecting...");
         return {
             authenticated: false,
             logout: true,
@@ -99,24 +96,22 @@ export const authProvider: AuthProvider = {
                 const now = Date.now();
                 
                 if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-                    console.log("📦 [Auth] Using cached organization data");
                     organization = cached.data;
                 } else {
-                    // ✅ Fetch using axiosInstance instead of raw fetch
                     try {
                         const response = await axiosInstance.get(
                             `/organization/${user.organizationId}`
                         );
                         organization = response.data?.data || response.data;
                         
-                        // ✅ Cache the result
                         organizationCache[user.id] = {
                             data: organization,
                             timestamp: now,
                         };
-                        console.log("✅ [Auth] Organization data fetched and cached");
                     } catch (error) {
-                        console.error("❌ [Auth] Failed to fetch organization:", error);
+                         if (import.meta.env?.DEV) {
+                            console.error("[Auth] Failed to fetch organization:", error);
+                        }
                     }
                 }
             }
