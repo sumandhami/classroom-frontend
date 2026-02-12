@@ -71,6 +71,24 @@ export enum UserRole {
     ADMIN = "admin",
 }
 
+export type OrganizationType = "school" | "college" | "university" | "coaching";
+
+export type Organization = {
+    id: string;
+    name: string;
+    type: OrganizationType;
+    email: string;
+    phone?: string;
+    address?: string;
+    logo?: string;
+    logoCldPubId?: string;
+    subscriptionStatus: "active" | "inactive" | "trial" | "expired";
+    subscriptionStartDate?: string;
+    subscriptionEndDate?: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
 export type User = {
     id: string;
     createdAt: string;
@@ -81,6 +99,8 @@ export type User = {
     image?: string;
     imageCldPubId?: string;
     department?: string;
+    organizationId?: string; 
+    organization?: Organization; 
 };
 
 export type Schedule = {
@@ -112,11 +132,15 @@ export type ClassDetails = {
     inviteCode?: string;
 };
 
-export type SignUpPayload = {
-    email: string;
-    name: string;
-    password: string;
-    image?: string;
-    imageCldPubId?: string;
-    role: UserRole;
+export type OrganizationSignUpPayload = {
+    organizationName: string;
+    organizationType: OrganizationType;
+    organizationEmail: string;
+    organizationPhone?: string;
+    organizationAddress?: string;
+    organizationLogo?: string;
+    organizationLogoCldPubId?: string;
+    adminName: string;
+    adminEmail: string;
+    adminPassword: string;
 };

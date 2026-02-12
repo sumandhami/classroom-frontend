@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import {
+  useGetIdentity,
   useLink,
   useMenu,
   useRefineOptions,
@@ -222,8 +223,15 @@ function SidebarItemLink({ item, selectedKey }: MenuItemProps) {
 }
 
 function SidebarHeader() {
-  const { title } = useRefineOptions();
   const { open, isMobile } = useShadcnSidebar();
+
+    const { data: user } = useGetIdentity<{
+    name: string;
+    organization?: {
+      name: string;
+      logo?: string;
+    };
+  }>();
 
   return (
     <ShadcnSidebarHeader
@@ -255,9 +263,24 @@ function SidebarHeader() {
           }
         )}
       >
-        <div>{title.icon}</div>
+         <div className="flex items-center justify-center w-8 h-8">
+          {user?.organization?.logo ? (
+            <img 
+              src={user.organization.logo} 
+              alt={user.organization.name || "Organization"}
+              className="w-8 h-8 rounded object-cover"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center">
+              <span className="text-xs font-bold text-primary">
+                {user?.organization?.name?.charAt(0) || "C"}
+              </span>
+            </div>
+          )}
+        </div>
+        
         <h2
-          className={cn(
+            className={cn(
             "text-sm",
             "font-bold",
             "transition-opacity",
@@ -268,7 +291,7 @@ function SidebarHeader() {
             }
           )}
         >
-          {title.text}
+          {user?.organization?.name || "Classroom"}
         </h2>
       </div>
 

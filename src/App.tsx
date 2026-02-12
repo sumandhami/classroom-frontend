@@ -1,5 +1,5 @@
 import { Authenticated } from "@refinedev/core";
-import { GitHubBanner, Refine } from "@refinedev/core";
+import { Refine } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
@@ -52,7 +52,7 @@ function App() {
               options={{
                 syncWithLocation: true,
                 warnWhenUnsavedChanges: true,
-                projectId: "GOzXC3-c530XE-cSmPdZ",
+                // projectId: "GOzXC3-c530XE-cSmPdZ",
               }}
               resources={[
                   {
@@ -96,42 +96,50 @@ function App() {
               ]}
             >
               <Routes>
-
+                  {/* ✅ PUBLIC ROUTES - No authentication needed */}
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/verify-email" element={<VerifyEmailPage />} />
 
-              <Route
-    element={
-      <Layout>
-        <Outlet />
-      </Layout>
-    }
-  >
-                  <Route index element={<Dashboard />} />
-                  <Route path="departments">
-                    <Route index element={<DepartmentsList />} />
-                    <Route path="create" element={<DepartmentsCreate />} />
-                    <Route path="edit/:id" element={<DepartmentsEdit />} />
+                  {/* ✅ PROTECTED ROUTES - Must be logged in */}
+                  <Route
+                    element={
+                      <Authenticated
+                        key="authenticated-layout"
+                        // fallback={<div>Checking authentication...</div>}
+                        redirectOnFail="/login"
+                        loading={<div>Checking authentication...</div>}
+                      >
+                        <Layout>
+                          <Outlet />
+                        </Layout>
+                      </Authenticated>
+                    }
+                  >
+                    <Route index element={<Dashboard />} />
+                    <Route path="departments">
+                      <Route index element={<DepartmentsList />} />
+                      <Route path="create" element={<DepartmentsCreate />} />
+                      <Route path="edit/:id" element={<DepartmentsEdit />} />
+                    </Route>
+                    <Route path="subjects">
+                      <Route index element={<SubjectsList />} />
+                      <Route path="create" element={<SubjectsCreate />} />
+                      <Route path="edit/:id" element={<SubjectsEdit />} />
+                    </Route>
+                    <Route path="classes">
+                      <Route index element={<ClassesList />} />
+                      <Route path="create" element={<ClassesCreate />} />
+                      <Route path="edit/:id" element={<ClassesEdit />} />
+                      <Route path="show/:id" element={<ClassesShow />} />
+                    </Route>
+                    <Route path="users">
+                      <Route index element={<UsersList />} />
+                      <Route path="edit/:id" element={<UsersEdit />} />
+                    </Route>
+                    <Route path="account" element={<AccountPage />} />
                   </Route>
-                  <Route path="subjects">
-                    <Route index element={<SubjectsList />} />
-                    <Route path="create" element={<SubjectsCreate />} />
-                    <Route path="edit/:id" element={<SubjectsEdit />} />
-                  </Route>
-                  <Route path="classes">
-                    <Route index element={<ClassesList />} />
-                    <Route path="create" element={<ClassesCreate />} />
-                    <Route path="edit/:id" element={<ClassesEdit />} />
-                    <Route path="show/:id" element={<ClassesShow />} />
-                  </Route>
-                  <Route path="users">
-                    <Route index element={<UsersList />} />
-                    <Route path="edit/:id" element={<UsersEdit />} />
-                  </Route>
-                  <Route path="account" element={<AccountPage />} />
-                </Route>
               </Routes>
               <Toaster />
               <RefineKbar />
