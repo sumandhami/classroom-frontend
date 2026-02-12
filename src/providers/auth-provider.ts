@@ -1,5 +1,10 @@
 import { AuthProvider } from "@refinedev/core";
 import { authClient } from "@/lib/auth";
+import { axiosInstance } from "@/providers/data";
+
+// ✅ Simple cache for organization data
+let organizationCache: { [userId: string]: { data: any; timestamp: number } } = {};
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export const authProvider: AuthProvider = {
     login: async ({ email, password }) => {
@@ -17,6 +22,9 @@ export const authProvider: AuthProvider = {
                 },
             };
         }
+
+        // ✅ Clear cache on login
+        organizationCache = {};
 
         return {
             success: true,
@@ -36,6 +44,10 @@ export const authProvider: AuthProvider = {
                 },
             };
         }
+
+        // ✅ Clear cache on logout
+        organizationCache = {};
+
         return {
             success: true,
             redirectTo: "/login",
@@ -62,7 +74,7 @@ export const authProvider: AuthProvider = {
         console.log("🚫 [Auth] Not authenticated, redirecting...");
         return {
             authenticated: false,
-            redirectTo: "/login", // ✅ REMOVED logout: true
+            redirectTo: "/login",
         };
     },
     
@@ -74,40 +86,50 @@ export const authProvider: AuthProvider = {
         return null;
     },
     
-   getIdentity: async () => {
-    const { data: session } = await authClient.getSession();
-    if (session?.user) {
-        const user = session.user as any;
-        
-        // ✅ Fetch organization data if user has organizationId
-        let organization = null;
-        if (user.organizationId) {
-            try {
-                const orgResponse = await fetch(
-                    `${import.meta.env.VITE_BACKEND_BASE_URL}/organization/${user.organizationId}`,
-                    {
-                        credentials: 'include',
+    getIdentity: async () => {
+        const { data: session } = await authClient.getSession();
+        if (session?.user) {
+            const user = session.user as any;
+            
+            let organization = null;
+            if (user.organizationId) {
+                // ✅ Check cache first
+                const cached = organizationCache[user.id];
+                const now = Date.now();
+                
+                if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+                    console.log("📦 [Auth] Using cached organization data");
+                    organization = cached.data;
+                } else {
+                    // ✅ Fetch using axiosInstance instead of raw fetch
+                    try {
+                        const response = await axiosInstance.get(
+                            `/organization/${user.organizationId}`
+                        );
+                        organization = response.data?.data || response.data;
+                        
+                        // ✅ Cache the result
+                        organizationCache[user.id] = {
+                            data: organization,
+                            timestamp: now,
+                        };
+                        console.log("✅ [Auth] Organization data fetched and cached");
+                    } catch (error) {
+                        console.error("❌ [Auth] Failed to fetch organization:", error);
                     }
-                );
-                if (orgResponse.ok) {
-                    const orgData = await orgResponse.json();
-                    organization = orgData.data;
                 }
-            } catch (error) {
-                console.error("Failed to fetch organization:", error);
             }
+            
+            return {
+                ...user,
+                id: user.id,
+                name: user.name,
+                avatar: user.image,
+                organization,
+            };
         }
-        
-        return {
-            ...user,
-            id: user.id,
-            name: user.name,
-            avatar: user.image,
-            organization, // ✅ Add organization data
-        };
-    }
-    return null;
-},
+        return null;
+    },
     
     onError: async (error) => {
         const statusCode = error?.statusCode ?? error?.status;

@@ -169,7 +169,7 @@ export const SignUpForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Organization Type *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select type" />

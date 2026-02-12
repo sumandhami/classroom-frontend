@@ -189,3 +189,5 @@ export const dataProvider: DataProvider = {
 
     getApiUrl: () => BACKEND_BASE_URL,
 };
+
+export { axiosInstance };
