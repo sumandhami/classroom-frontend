@@ -1,6 +1,6 @@
 import { DataProvider, HttpError } from "@refinedev/core";
 import { BACKEND_BASE_URL } from "@/constants";
-import { CreateResponse, ListResponse, GetOneResponse } from "@/types";
+import { CreateResponse, ListResponse, GetOneResponse, OrganizationSignUpPayload } from "@/types";
 import axios, { AxiosError } from "axios";
 
 if (!BACKEND_BASE_URL) throw new Error("BACKEND_BASE_URL is not configured.");
@@ -13,12 +13,12 @@ const axiosInstance = axios.create({
 const shouldLogAxios = import.meta.env?.DEV === true;
 const scrubUrl = (url?: string) => url?.split("?")[0];
 
-    axiosInstance.interceptors.request.use((config) => {
-            if (shouldLogAxios) {
-                    console.debug(`[Axios] ${config.method?.toUpperCase()} ${scrubUrl(config.url)}`);
-                }
-            return config;
-        });
+axiosInstance.interceptors.request.use((config) => {
+    if (shouldLogAxios) {
+        console.debug(`[Axios] ${config.method?.toUpperCase()} ${scrubUrl(config.url)}`);
+    }
+    return config;
+});
 
 axiosInstance.interceptors.response.use(
     (response) => {
@@ -41,6 +41,23 @@ const buildHttpError = (error: AxiosError): HttpError => {
         message,
         statusCode: error.response?.status || 500
     };
+};
+
+// ✅ NEW: Organization registration helper
+export const registerOrganization = async (payload: OrganizationSignUpPayload) => {
+    try {
+        const response = await axiosInstance.post('/organization/register', payload);
+        return {
+            success: true,
+            data: response.data,
+        };
+    } catch (error) {
+        const axiosError = error as AxiosError;
+        return {
+            success: false,
+            error: buildHttpError(axiosError),
+        };
+    }
 };
 
 export const dataProvider: DataProvider = {
@@ -137,41 +154,38 @@ export const dataProvider: DataProvider = {
         }
     },
 
+    custom: async ({ url, method, filters, sorters, payload, query, headers }) => {
+        try {
+            let requestUrl = `${url}`;
 
-custom: async ({ url, method, filters, sorters, payload, query, headers }) => {
-    try {
-        let requestUrl = `${url}`;
+            if (query) {
+                const queryParams = new URLSearchParams();
+                Object.entries(query).forEach(([key, value]) => {
+                    queryParams.append(key, String(value));
+                });
+                requestUrl = `${requestUrl}?${queryParams.toString()}`;
+            }
 
-        if (query) {
-            const queryParams = new URLSearchParams();
-            Object.entries(query).forEach(([key, value]) => {
-                queryParams.append(key, String(value));
+            console.log('🌐 Custom API Request:', requestUrl);
+
+            const response = await axiosInstance.request({
+                url: requestUrl,
+                method: method || 'get',
+                data: payload,
+                headers,
             });
-            requestUrl = `${requestUrl}?${queryParams.toString()}`;
+
+            console.log('✅ Custom API Response:', response.data);
+            
+            const returnValue = { data: response.data };
+            console.log('🔄 Returning from custom method:', returnValue);
+
+            return returnValue;
+        } catch (error) {
+            console.error('❌ Custom API Error:', error);
+            throw buildHttpError(error as AxiosError);
         }
-
-        console.log('🌐 Custom API Request:', requestUrl);
-
-        const response = await axiosInstance.request({
-            url: requestUrl,
-            method: method || 'get',
-            data: payload,
-            headers,
-        });
-
-        console.log('✅ Custom API Response:', response.data);
-        
-        // ✅ Log what we're actually returning
-        const returnValue = { data: response.data };
-        console.log('🔄 Returning from custom method:', returnValue);
-
-        return returnValue;
-    } catch (error) {
-        console.error('❌ Custom API Error:', error);
-        throw buildHttpError(error as AxiosError);
-    }
-},
-
+    },
 
     getApiUrl: () => BACKEND_BASE_URL,
 };

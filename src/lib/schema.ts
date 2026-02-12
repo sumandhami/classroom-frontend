@@ -115,3 +115,50 @@ export const departmentUpdateSchema = departmentSchema.partial().extend({
 
 export type DepartmentFormValues = z.infer<typeof departmentSchema>;
 export type DepartmentUpdateValues = z.infer<typeof departmentUpdateSchema>;
+
+// ✅ NEW: Organization registration schema
+export const organizationSignUpSchema = z.object({
+    // Organization details
+    organizationName: z
+        .string({ required_error: "Organization name is required" })
+        .min(2, "Organization name must be at least 2 characters")
+        .max(255, "Organization name must be at most 255 characters"),
+    organizationType: z.enum(["school", "college", "university", "coaching"], {
+        required_error: "Please select organization type",
+    }),
+    organizationEmail: z
+        .string({ required_error: "Organization email is required" })
+        .email("Invalid email address"),
+    organizationPhone: z
+        .string()
+        .min(10, "Phone number must be at least 10 characters")
+        .optional()
+        .or(z.literal("")),
+    organizationAddress: z
+        .string()
+        .min(5, "Address must be at least 5 characters")
+        .optional()
+        .or(z.literal("")),
+    
+    // Admin user details
+    adminName: z
+        .string({ required_error: "Admin name is required" })
+        .min(2, "Admin name must be at least 2 characters")
+        .max(255, "Admin name must be at most 255 characters"),
+    adminEmail: z
+        .string({ required_error: "Admin email is required" })
+        .email("Invalid email address"),
+    adminPassword: z
+        .string({ required_error: "Password is required" })
+        .min(8, "Password must be at least 8 characters")
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+        .regex(/[0-9]/, "Password must contain at least one number"),
+    confirmPassword: z
+        .string({ required_error: "Please confirm your password" }),
+}).refine((data) => data.adminPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+});
+
+export type OrganizationSignUpFormValues = z.infer<typeof organizationSignUpSchema>;

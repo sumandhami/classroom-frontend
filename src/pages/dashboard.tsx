@@ -1,5 +1,5 @@
 import React from 'react';
-import {useCustom} from "@refinedev/core";
+import {useCustom, useGetIdentity} from "@refinedev/core";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {BookOpen, GraduationCap, Users, UserCheck, TrendingUp, PieChart as PieChartIcon} from "lucide-react";
 import {
@@ -19,6 +19,13 @@ import {
 } from 'recharts';
 
 const Dashboard = () => {
+       const { data: user } = useGetIdentity<{
+        name: string;
+        organization?: {
+            name: string;
+            logo?: string;
+        };
+    }>();
     // ✅ Destructure correctly from useCustom
     const { query: statsQuery } = useCustom({
         url: `/dashboard/stats`,
@@ -79,7 +86,18 @@ const Dashboard = () => {
 
     return (
         <div className="p-6 space-y-6">
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <div className="flex items-center gap-3">
+                {user?.organization?.logo && (
+                    <img 
+                        src={user.organization.logo} 
+                        alt={user.organization.name || "Organization"}
+                        className="w-10 h-10 rounded object-cover"
+                    />
+                )}
+                <h1 className="text-3xl font-bold">
+                    {user?.organization?.name || "Dashboard"}
+                </h1>
+            </div>
 
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
